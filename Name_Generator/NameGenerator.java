@@ -146,7 +146,11 @@ public class NameGenerator
         return randNum;
     }
 
-    
+    public static String[] contains()
+    {
+        String[] list = new String[10];
+        return list; 
+    }
 
     // Choosing the Regular Names
     public static String[] choice_First_Names(int region, int race, int role, int gender) throws IOException
