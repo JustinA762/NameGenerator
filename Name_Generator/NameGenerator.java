@@ -1,8 +1,10 @@
 package Name_Generator;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -142,6 +144,31 @@ public class NameGenerator
         return result;
     }
 
+    public static int choice_Character(String character)
+    {
+        /*
+         * family
+         * happiness
+         * purpose
+         * survival
+         * 
+         */
+
+        String lowerCase = character.toLowerCase();
+        int result = 0;
+
+        if (lowerCase.equals("family"))
+            result = 1;
+        if (lowerCase.equals("happiness"))
+            result = 2;
+        if (lowerCase.equals("purpose"))
+            result = 3;
+        if (lowerCase.equals("survival"))
+            result = 4;
+
+        return result;
+    }
+
     public static Integer[] randomNum(int length, String[] array)
     {
         Random rand = new Random();
@@ -157,12 +184,13 @@ public class NameGenerator
         return randNum;
     }
 
+    // Names contains certain characters to make a name catchy
     public static String[] contains(String [] names, String cases)
     {
         String temp = "";
         String[] lower = new String[names.length];
 
-        System.out.println(Arrays.toString(names));
+        //System.out.println(Arrays.toString(names));
 
         for (int i = 0; i<names.length; i++)
         {
@@ -195,15 +223,222 @@ public class NameGenerator
         return output;
     }
 
-    public static String[] region_Names(int region) throws IOException
+    // First Names gathered into one output file. Last names too 
+    public static void gatherAllToOutput(String name) throws IOException
+    {
+        HashSet<String> theNames = new HashSet<String>();
+        String output = new File("").getAbsolutePath() + "\\Name_Generator\\names\\output.txt";
+
+        if (name == "first")
+        {
+            theNames.add(new File("").getAbsolutePath() + "\\Name_Generator\\names\\Country_and_Region");
+            theNames.add(new File("").getAbsolutePath() + "\\Name_Generator\\names\\Noble");
+            theNames.add(new File("").getAbsolutePath() + "\\Name_Generator\\names\\Race");
+            theNames.add(new File("").getAbsolutePath() + "\\Name_Generator\\names\\Regular");
+            output = new File("").getAbsolutePath() + "\\Name_Generator\\names\\outputFirstNames.txt"; 
+        }
+        if (name == "last")
+        {
+            theNames.add(new File("").getAbsolutePath() + "\\Name_Generator\\names\\Last_Names");
+            output = new File("").getAbsolutePath() + "\\Name_Generator\\names\\outputLastNames.txt";
+        }
+        
+        // You need the specific filepath, not just the output.txt!
+        PrintWriter pw = new PrintWriter(output);
+
+        //int count = 0;
+        String names[] = new String[theNames.size()];
+        names = theNames.toArray(new String[0]);
+
+        for (String fileFirstNames: names)
+        {
+            File dir = new File(fileFirstNames);
+
+            String[] fileNames = dir.list();
+            //System.out.println(Arrays.toString(fileNames));
+
+            // pw --> output.txt
+            // br --> going through the files in directory
+            for (String fileName : fileNames) 
+            {
+                File f = new File(dir, fileName);
+                BufferedReader br = new BufferedReader(new FileReader(f));
+    
+                String line = br.readLine();
+                while (line != null) 
+                {
+                    //pw.println(line + " - " + count++);
+                    pw.println(line);
+                    line = br.readLine();
+                }
+                pw.flush();
+            }
+            //System.out.println("Reading from all files" + " in directory " + dir.getName() + " Completed");
+        }
+    }
+
+    // File to String Array
+    public static String[] fileToArray(String filepath) throws IOException
     {
         List<String> listOfStrings = new ArrayList<String>();
-        List<String> listOfStrings2 = new ArrayList<String>();
-        List<String> listOfStrings3 = new ArrayList<String>();
+        BufferedReader bf = new BufferedReader(new FileReader(filepath));
+        String line = bf.readLine();
+
+        while (line != null) {
+            listOfStrings.add(line);
+            line = bf.readLine();
+        }
+
+        bf.close();
+
+        String[] array = listOfStrings.toArray(new String[0]);
+
+        //System.out.println(Arrays.toString(array) + "\n" + array.length);
+
+        return array;
+    }
+
+    public static String[] getCatchyNames(String name, String cases) throws IOException
+    {
+        String[] inital = fileToArray("Name_Generator/names/outputFirstNames.txt");
+
+        if (name == "first")
+        {
+            // Gather first/last names to one file, output
+            gatherAllToOutput("first");
+            // Take one file and convert it to String Array
+            inital = fileToArray("Name_Generator/names/outputFirstNames.txt");
+        }
+        if (name == "last")
+        {
+            // Gather first/last names to one file, output
+            gatherAllToOutput("last");
+            // Take one file and convert it to String Array
+            inital = fileToArray("Name_Generator/names/outputLastNames.txt");
+        }
+
+        HashSet<String> listOfStrings = new HashSet<String>();
+
+        // Getting all the names that has the case
+        listOfStrings.addAll(Arrays.asList(contains(inital, cases)));
+
+            
+        String output[] = new String[listOfStrings.size()];
+        output = listOfStrings.toArray(new String[0]);
+        //System.out.println(Arrays.toString(output));
+        //System.out.println(output.length);
+
+        return output;
+    }
+
+    // Gathers the first and last catchy names, putting it together
+    public static String[] fullCatchyNameByCase(String cases) throws IOException
+    {
+        String[] thefirst = getCatchyNames("first", cases);
+        String[] thelast = getCatchyNames("last", cases);
+
+        Integer[] randNumFirst = randomNum(thefirst.length, thefirst);
+        Integer[] randNumLast = randomNum(thelast.length, thelast);
+
+        String[] newfirst = new String[thefirst.length];
+        String[] newlast = new String[thelast.length];
+
+        for (int i = 0; i < thefirst.length; i++) {
+            int ran = randNumFirst[i];
+            //System.out.println(ran);
+            newfirst[i] = thefirst[ran];
+        }
+
+        for (int i = 0; i < thelast.length; i++) {
+            int ran = randNumLast[i];
+            //System.out.println(ran);
+            newlast[i] = thelast[ran];
+        }
+
+        int len = Math.min(thefirst.length, thelast.length);
+        //System.out.println(thefirst.length + "\n" + thelast.length);
+
+        String fullName[] = new String[len];
+
+        for (int i=0; i<len; i++)
+            fullName[i] = newfirst[i] + " " + newlast[i];
+            
+        return fullName;
+    }
+
+    public static String[] fullCatchyName(int character) throws IOException 
+    {
+        HashSet<String> listOfStrings = new HashSet<String>();
+
+        /* Catchy Name Cases */
+        // if (character == 1) // Family
+        // {
+        //     listOfStrings.addAll(Arrays.asList(inital));
+        //     //System.out.println(listOfStrings + " \n" + listOfStrings.size());
+        // }
+        if (character == 2) // Happiness
+        {
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("s")));
+            System.out.println("s - " + fullCatchyNameByCase("s").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("sh")));
+            System.out.println("sh - " + fullCatchyNameByCase("sh").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("l")));
+            System.out.println("l - " + fullCatchyNameByCase("l").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("r")));
+            System.out.println("r - " + fullCatchyNameByCase("r").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("m")));
+            System.out.println("m - " + fullCatchyNameByCase("m").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("n")));
+            System.out.println("n - " + fullCatchyNameByCase("n").length);
+        }
+        if (character == 3) // Purpose
+        {
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("us")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "us").length);
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("ia")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "ia").length);
+            //System.out.println(listOfStrings.size());
+        }
+        if (character == 4) // Survival
+        {
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("k")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "k").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("t")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "t").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("z")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "z").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("x")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "x").length);
+
+            listOfStrings.addAll(Arrays.asList(fullCatchyNameByCase("r")));
+            // System.out.println(listOfStrings + " \n" + contains(inital, "r").length);
+            //System.out.println(listOfStrings.size());
+        }
+
+        String output[] = new String[listOfStrings.size()];
+        output = listOfStrings.toArray(new String[0]);
+        //System.out.println(Arrays.toString(output));
+
+        return output;
+    }
+
+    public static String[] region_Names(int region) throws IOException
+    {
+        HashSet<String> listOfStrings = new HashSet<String>();
+        HashSet<String> listOfStrings2 = new HashSet<String>();
+        HashSet<String> listOfStrings3 = new HashSet<String>();
 
         BufferedReader bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
-        BufferedReader bf2 =new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
-        BufferedReader bf3 =new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
+        BufferedReader bf2 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
+        BufferedReader bf3 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
 
         if (region == 1) // Land of Green
         {
@@ -307,7 +542,7 @@ public class NameGenerator
 
     public static String[] race_Names(int race) throws IOException
     {
-        List<String> listOfStrings = new ArrayList<String>();
+        HashSet<String> listOfStrings = new HashSet<String>();
 
         BufferedReader bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
        
@@ -348,7 +583,7 @@ public class NameGenerator
     public static String[] roles_Names(int role, int gender) throws IOException
     {
         // list that holds strings of a file
-        List<String> listOfStrings = new ArrayList<String>();
+        HashSet<String> listOfStrings = new HashSet<String>();
 
         BufferedReader bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Male_Names.txt"));
 
@@ -359,11 +594,11 @@ public class NameGenerator
         }
         if (gender == 2)
         {
-            bf = new BufferedReader(new FileReader("Name_Generator/names/Regular_Female_Names.txt"));
+            bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Female_Names.txt"));
         }
         if (gender == 3)
         {
-            bf = new BufferedReader(new FileReader("Name_Generator/names/Regular_Neutral_Names.txt"));
+            bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Neutral_Names.txt"));
         }
         if (gender == 1 && role == 3)
         {
@@ -394,6 +629,19 @@ public class NameGenerator
         return array;
     }
 
+    public static String[] combineArrays(String[] one, String[] two)
+    {
+        HashSet<String> comb = new HashSet<String>();
+
+        comb.addAll(Arrays.asList(one));
+        comb.addAll(Arrays.asList(two));
+
+        String output[] = new String[comb.size()];
+        output = comb.toArray(new String[0]);
+
+        return output;
+    }
+
     // Choosing the Regular Names
     public static String[] choice_First_Names(int region, int race, int role, int gender) throws IOException
     {
@@ -409,7 +657,7 @@ public class NameGenerator
         String[] output = totalNames.toArray(new String[0]);
         System.out.println("Total: " + output.length + "\n----------------------------------");
 
-        String[] firstNames = new String[10];
+        String[] firstNames = new String[totalNames.size()];
         Integer[] randNum = randomNum(firstNames.length, output);
        
         // printing each line of file 
@@ -481,7 +729,7 @@ public class NameGenerator
         }
         System.out.println("Total: " + output.length + "\n----------------------------------");
  
-        String[] nickNames = new String[4];
+        String[] nickNames = new String[listOfNick.size()];
         Integer[] randNum = randomNum(nickNames.length, output);
        
         // printing each line of file 
@@ -502,10 +750,10 @@ public class NameGenerator
         List<String> listOfStrings3 = new ArrayList<String>();
         List<String> listOfStrings4 = new ArrayList<String>();
 
-        BufferedReader bf = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Last_Names.txt"));
-        BufferedReader bf2 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Last_Names.txt"));
-        BufferedReader bf3 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Last_Names.txt"));
-        BufferedReader bf4 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Last_Names.txt"));
+        BufferedReader bf = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Regular_Last_Names.txt"));
+        BufferedReader bf2 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Regular_Last_Names.txt"));
+        BufferedReader bf3 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Regular_Last_Names.txt"));
+        BufferedReader bf4 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Regular_Last_Names.txt"));
 
         // load data from file
         if ((region == 1 && role == 1) || (region == 1 && role == 2)) // Land of Green
@@ -513,7 +761,7 @@ public class NameGenerator
             bf = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Sword_Last_Names.txt"));
             bf2 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Water_Last_Names.txt"));
             bf3 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Warrior_Last_Names.txt"));
-            bf4 = new BufferedReader(new FileReader("Name_Generator/names/Regular/Regular_Last_Names.txt"));
+            bf4 = new BufferedReader(new FileReader("Name_Generator/names/Last_Names/Regular_Last_Names.txt"));
         }
         if ((region == 1 && role == 3)) // Land of Green
         {
@@ -616,7 +864,7 @@ public class NameGenerator
             System.out.println("Arcadia: " + output.length);
         }
  
-        String[] lastNames = new String[10];
+        String[] lastNames = new String[listOfStrings.size()];
         Integer[] randNum = randomNum(lastNames.length, output);
        
         // printing each line of file 
@@ -630,31 +878,67 @@ public class NameGenerator
         return lastNames;
     } 
 
-    public static void toPrint(int region, int race, int role, int gender) throws IOException
+    public static String[] fullNameWithNickname(String[] first, String[] nick, String[] last)
     {
-        String[] firstName = choice_First_Names(region, race, role, gender);
-        String[] nickName = choice_Nicknames(race);
-        String[] lastName = choice_Last_Name(region, role);
-        String[] regularName = new String[6];
-        String[] specificName = new String[4];
-        String[] fullName = new String[10];
+        int thefirstcom = Math.min(first.length, last.length);
+        int theseccom = Math.min(thefirstcom, nick.length);
+        String[] fullname = new String[theseccom];
+
+        for (int i=0; i<theseccom; i++)
+        {
+            fullname[i] = first[i] + " '" + nick[i] + "' " + last[i];
+        }
+
+        return fullname;
+    }
+
+    public static String[] fullNameWithoutNickname(String[] first, String[] last)
+    {
+        int thefirstcom = Math.min(first.length, last.length);
+        String[] fullname = new String[thefirstcom];
+
+        for (int i=0; i<thefirstcom; i++)
+        {
+            fullname[i] = first[i] + " " + last[i];
+        }
+
+        return fullname;
+    }
+
+    public static void toPrint(int region, int race, int role, int gender, int character) throws IOException
+    {
+        String[] fullNameWithoutNick = fullNameWithoutNickname(choice_First_Names(region, race, role, gender), choice_Last_Name(region, role));
+        String[] fullNameWithNick = fullNameWithNickname(choice_First_Names(region, race, role, gender), choice_Nicknames(race), choice_Last_Name(region, role));
+        String[] fullCatchyNames = fullCatchyName(character);
+
+        String[] regularName = new String[5];
+        String[] specificName = new String[5];
+        String[] catchyName = new String[10];
+        String[] fullName = new String[20];
         
         for (int i=0; i < regularName.length; i++)
         {
-            regularName[i] = firstName[i] + " " + lastName[i];
+            regularName[i] = fullNameWithoutNick[i];
         }
 
         for (int i=0; i < specificName.length; i++)
         {
-            specificName[i] = firstName[i + 6] + " '" + nickName[i] + "' " + lastName[i + 6];
+            specificName[i] = fullNameWithNick[i];
+        }
+
+        for (int i=0; i < catchyName.length; i++)
+        {
+            catchyName[i] = fullCatchyNames[i];
         }
 
         for (int i=0; i < fullName.length; i++)
         {
-            if (i <= 5)
+            if (i <= 4)
                 fullName[i] = regularName[i];
+            else if (4 < i && i <= 9)
+                fullName[i] = specificName[i-5];
             else
-                fullName[i] = specificName[i-6];
+                fullName[i] = catchyName[i-10];
         }
         
         for (String names: fullName)
@@ -665,7 +949,6 @@ public class NameGenerator
         //System.out.println(list.length);
         //System.out.println(list[1]);
     }
-
     public static void main(String[] args) throws IOException
     {
         Scanner scanner = new Scanner(System.in);
@@ -698,17 +981,6 @@ public class NameGenerator
         System.out.println("* Dragon Lair");
         System.out.println("-----------------------------------");
         String region = scanner.nextLine();
-        choice_Region(region);
-
-        //  * Human
-        //  * Demihuman
-        //  * Elf
-        //  * Orc
-        //  * Demon
-        //  * Angel
-        //  * Dark Elf
-        //  * Dragonite
-        //  * Creed *****
 
         System.out.println("What is your Race?");
         System.out.println("------------------");
@@ -725,11 +997,6 @@ public class NameGenerator
         System.out.println("* Rabidus");
         System.out.println("------------------");
         String race = scanner.nextLine();
-        choice_Race(race);
-
-        //  * Low
-        //  * Middle
-        //  * Upper
 
         System.out.println("What is your social class?");
         System.out.println("--------------------");
@@ -738,11 +1005,6 @@ public class NameGenerator
         System.out.println("* Upper");
         System.out.println("--------------------");
         String role = scanner.nextLine();
-        choice_Class(role);
-
-        //  * Male
-        //  * Female
-        //  * Neutral
 
         System.out.println("What is your Gender?");
         System.out.println("--------------------");
@@ -751,11 +1013,19 @@ public class NameGenerator
         System.out.println("* Neutral");
         System.out.println("--------------------");
         String gender = scanner.nextLine();
-        choice_Gender(gender);
+
+        System.out.println("What's important to your character?");
+        System.out.println("--------------------");
+        System.out.println("* Family");
+        System.out.println("* Happiness");
+        System.out.println("* Purpose");
+        System.out.println("* Survival");
+        System.out.println("--------------------");
+        String character = scanner.nextLine();
         System.out.println("--------------------" + "\n");
 
         System.out.println("----------------------------------");
-        toPrint(choice_Region(region), choice_Race(race), choice_Class(role), choice_Gender(gender));
+        toPrint(choice_Region(region), choice_Race(race), choice_Class(role), choice_Gender(gender), choice_Character(character));
         System.out.println("----------------------------------");
         
     }
